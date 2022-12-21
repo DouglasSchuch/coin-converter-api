@@ -11,19 +11,27 @@ export class TransactionsService {
     private readonly transactionRepository: Repository<Transaction>,
   ) {}
 
-  async create(createTransactionDto: CreateTransactionDto, user_id) {
+  async create(
+    createTransactionDto: CreateTransactionDto,
+    user_id: number,
+  ): Promise<Transaction> {
     try {
-      const newUser = this.transactionRepository.create({
+      const newTransaction = this.transactionRepository.create({
         ...createTransactionDto,
         user: { id: user_id },
       });
-      return await this.transactionRepository.save(newUser);
+      return await this.transactionRepository.save(newTransaction);
     } catch (err) {
       throw err;
     }
   }
 
-  async findAll() {
-    return await this.transactionRepository.find({ relations: ['users'] });
+  async findAllByUser(id: number): Promise<Transaction[]> {
+    return await this.transactionRepository.find({
+      relations: ['user'],
+      where: {
+        user: { id },
+      },
+    });
   }
 }

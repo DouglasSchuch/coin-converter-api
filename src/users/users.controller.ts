@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Logger, Post, Body } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import {
@@ -9,6 +9,7 @@ import {
 
 @Controller('users')
 export class UsersController {
+  private readonly logger = new Logger(UsersController.name);
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
@@ -29,6 +30,8 @@ export class UsersController {
   })
   @ApiResponse({ status: 200, description: 'Retorna o usuário cadastrado' })
   create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+    return this.usersService
+      .create(createUserDto)
+      .catch((err) => this.logger.error(`POST /users - ${err.message}`));
   }
 }

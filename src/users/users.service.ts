@@ -10,7 +10,7 @@ export class UsersService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) {}
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto): Promise<User> {
     try {
       const newUser = this.userRepository.create(createUserDto);
       return await this.userRepository.save(newUser);
@@ -19,7 +19,7 @@ export class UsersService {
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<User> {
     return await this.userRepository.findOne({
       relations: ['transactions'],
       where: { id },

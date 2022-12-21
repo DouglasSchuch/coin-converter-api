@@ -4,7 +4,9 @@ import { DocumentBuilder } from '@nestjs/swagger/dist';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error'],
+  });
 
   const config = new DocumentBuilder()
     .setTitle('Coin Converter API')

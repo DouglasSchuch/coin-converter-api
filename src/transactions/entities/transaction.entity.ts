@@ -31,5 +31,6 @@ export class Transaction {
     this.destination_currency = transaction?.destination_currency;
     this.conversion_rate = transaction?.conversion_rate;
     this.date = transaction?.date || new Date();
+    this.user = transaction?.user;
   }
 }

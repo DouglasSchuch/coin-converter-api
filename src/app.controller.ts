@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Logger } from '@nestjs/common';
 import { Body, Post } from '@nestjs/common/decorators';
 import { ApiOperation } from '@nestjs/swagger/dist';
 import { ApiBody, ApiResponse } from '@nestjs/swagger/dist/decorators';
@@ -6,6 +6,7 @@ import { AppService, ConvertDto } from './app.service';
 
 @Controller()
 export class AppController {
+  private readonly logger = new Logger(AppController.name);
   constructor(private readonly appService: AppService) {}
 
   @Post('/convert')
@@ -42,6 +43,8 @@ export class AppController {
   })
   @ApiResponse({ status: 200, description: 'Retorna os dados da transação' })
   async convert(@Body() data: ConvertDto): Promise<any> {
-    return await this.appService.convert(data);
+    return await this.appService
+      .convert(data)
+      .catch((err) => this.logger.error(`POST /convert - ${err.message}`));
   }
 }

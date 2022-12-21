@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsDate, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class ConvertDto {
   @IsNotEmpty()
@@ -7,15 +7,67 @@ export class ConvertDto {
 
   @IsNotEmpty()
   @IsString()
-  to: string;
+  from: string;
 
   @IsNotEmpty()
   @IsString()
-  from: string;
+  to: string;
 
   @IsNotEmpty()
   @IsNumber()
   amount: number;
+
+  constructor(dto?: Partial<ConvertDto>) {
+    this.user_id = dto?.user_id;
+    this.from = dto?.from;
+    this.to = dto?.to;
+    this.amount = dto?.amount;
+  }
+}
+
+export class ConvertReturnDto {
+  @IsNotEmpty()
+  @IsNumber()
+  transaction_id: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  user_id: number;
+
+  @IsNotEmpty()
+  @IsString()
+  source_currency: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  source_value: number;
+
+  @IsNotEmpty()
+  @IsString()
+  destination_currency: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  destination_value: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  conversion_rate: number;
+
+  @IsNotEmpty()
+  @IsDate()
+  date: Date;
+
+  constructor(dto?: Partial<ConvertReturnDto>) {
+    this.transaction_id = dto?.transaction_id;
+    this.user_id = dto?.user_id;
+    this.source_currency = dto?.source_currency;
+    this.source_value = dto?.source_value;
+    this.destination_currency = dto?.destination_currency;
+    this.destination_value = dto?.destination_value;
+    this.conversion_rate = dto?.conversion_rate;
+    this.date = dto?.date;
+  }
 }
 
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
@@ -34,7 +86,7 @@ export class AppService {
     private userService: UsersService,
   ) {}
 
-  validateCoin(coin: string) {
+  validateCoin(coin: string): boolean {
     return ['BRL', 'USD', 'EUR', 'JPY'].includes(coin);
   }
 
@@ -49,7 +101,7 @@ export class AppService {
     );
   }
 
-  async validateDto(dto: ConvertDto) {
+  async validateDto(dto: ConvertDto): Promise<void> {
     try {
       if (
         !dto.from ||
@@ -83,12 +135,12 @@ export class AppService {
     }
   }
 
-  async convert(dto: ConvertDto) {
+  async convert(dto: ConvertDto): Promise<ConvertReturnDto> {
     try {
       await this.validateDto(dto);
 
       const result = await this.getCoinValue(dto);
-      console.log(result.data);
+
       if (!result.data?.success) {
         throw new HttpException(
           'Error connecting to currency conversion server',
@@ -108,16 +160,17 @@ export class AppService {
         dto.user_id,
       );
 
-      return {
-        'Transaction ID': transactionCreated.id,
-        'User ID': dto.user_id,
-        'Source Currency': dto.to,
-        'Source Value': dto.amount,
-        'Destination Currency': dto.from,
-        'Destination Value': result.data.result,
-        'Conversion Rate': result.data.info.rate,
-        'Date/Hour UTC': transaction.date,
-      };
+      const convertReturn = new ConvertReturnDto();
+      convertReturn.transaction_id = transactionCreated.id;
+      convertReturn.user_id = dto.user_id;
+      convertReturn.source_currency = dto.to;
+      convertReturn.source_value = dto.amount;
+      convertReturn.destination_currency = dto.from;
+      convertReturn.destination_value = result.data.result;
+      convertReturn.conversion_rate = result.data.info.rate;
+      convertReturn.date = transaction.date;
+
+      return convertReturn;
     } catch (err) {
       throw err;
     }

@@ -8,4 +8,9 @@ export class CreateUserDto {
   @IsNotEmpty()
   @MinLength(1)
   password: string;
+
+  constructor(dto?: Partial<CreateUserDto>) {
+    this.email = dto?.email;
+    this.password = dto?.password;
+  }
 }
